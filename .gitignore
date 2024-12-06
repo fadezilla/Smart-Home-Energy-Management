@@ -1,0 +1,15 @@
+# ASP.NET Core
+bin/
+obj/
+*.user
+*.suo
+*.db
+
+# Node and Angular
+node_modules/
+dist/
+coverage/
+
+# OS Files
+.DS_Store
+Thumbs.db
