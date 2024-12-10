@@ -10,6 +10,6 @@ namespace SmartHome.backend.Models
         public double EnergyConsumptionRate { get; set; }
 
         public int ResidentialUnitId { get; set; }
-        public ResidentialUnit ResidentialUnit { get; set; }
+        public ResidentialUnit ResidentialUnit { get; set; } = null!; // Will be null on runtime
     }
 }
