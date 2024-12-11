@@ -72,6 +72,49 @@ namespace SmartHome.backend.Controllers
 
             return Ok(houseDto);
         }
+        //Get request to get total energy usage from specific house
+        [HttpGet("{id}/total-energy")]
+        public async Task<IActionResult> GetTotalEnergyForHouse(int id)
+        {
+            var house = await _context.Houses
+                .Include(h => h.Devices)
+                .FirstOrDefaultAsync(h => h.Id == id);
+
+            if (house == null)
+            {
+                return NotFound("House not found.");
+            }
+
+            double totalEnergy = house.Devices.Sum(d => d.EnergyConsumptionRate);
+            return Ok(new { HouseId = house.Id, TotalEnergy = totalEnergy });
+        }
+
+        //Get request to return all devices that are currently turned on in a specific house by id
+        [HttpGet("{id}/on-devices")]
+        public async Task<IActionResult> GetOnDevicesForHouse(int id)
+        {
+            var house = await _context.Houses
+                .Include(h => h.Devices)
+                .FirstOrDefaultAsync(h => h.Id == id);
+
+            if (house == null)
+            {
+                return NotFound("House not found.");
+            }
+
+            var onDevices = house.Devices
+                .Where(d => d.IsOn)
+                .Select(d => new DeviceDto
+                {
+                    Id = d.DeviceId,
+                    Name = d.Name,
+                    IsOn = d.IsOn,
+                    EnergyConsumptionRate = d.EnergyConsumptionRate
+                })
+                .ToList();
+
+            return Ok(onDevices);
+        } 
 
         // Post request to add A device to a specific house by id
         [HttpPost("{id}/add-device")]

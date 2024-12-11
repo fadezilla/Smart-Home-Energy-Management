@@ -87,5 +87,32 @@ namespace SmartHome.backend.Controllers
 
             return Ok(complexDto);
         }
+        // Get request to return all devices that are currently on in a specifc apartment by id
+        [HttpGet("{id}/on-devices")]
+        public async Task<IActionResult> GetOnDevicesForApartment(int id)
+        {
+            var apartment = await _context.Apartments
+                .Include(a => a.Devices)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (apartment == null)
+            {
+                return NotFound("Apartment not found.");
+            }
+
+            var onDevices = apartment.Devices
+                .Where(d => d.IsOn)
+                .Select(d => new DeviceDto
+                {
+                    Id = d.DeviceId,
+                    Name = d.Name,
+                    IsOn = d.IsOn,
+                    EnergyConsumptionRate = d.EnergyConsumptionRate
+                })
+                .ToList();
+
+            return Ok(onDevices);
+        }
+
     }
 }

@@ -18,6 +18,25 @@ namespace SmartHome.backend.Controllers
             _context = context;
         }
 
+        //Get request to fetch all devices that are currently turned on.
+        [HttpGet("on")]
+        public async Task<IActionResult> GetDevicesThatAreOn()
+        {
+            var deviceOn = await _context.Devices
+                .Where(d => d.IsOn)
+                .ToListAsync();
+
+            var deviceDtos = deviceOn.Select(d => new DeviceDto
+            {
+                Id = d.DeviceId,
+                Name = d.Name,
+                IsOn = d.IsOn,
+                EnergyConsumptionRate = d.EnergyConsumptionRate
+            }).ToList();
+
+            return Ok(deviceDtos);
+        }
+
         // Post request to toggle on and off a specifc device by id
         [HttpPost("{id}/toggle")]
         public async Task<IActionResult> ToggleDevice(int id)
