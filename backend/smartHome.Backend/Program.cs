@@ -19,8 +19,24 @@ builder.Services.AddControllers();
 
 //Add endpoints, swagger, etc.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddMemoryCache();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Smart Home Energy Management API",
+        Version = "v1",
+        Description = "API for managing houses, apartments, and devices, along with their energy usage.",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "Harley Seierstad",
+            Email = "harleyseierstad@hotmail.com"
+        }
+    });
+    c.EnableAnnotations();
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
 
 var app = builder.Build();
 
