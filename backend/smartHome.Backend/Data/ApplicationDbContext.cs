@@ -15,6 +15,7 @@ namespace SmartHome.backend.Data
         public DbSet<House> Houses { get; set; }
         public DbSet<Apartment> Apartments { get; set; }
         public DbSet<ApartmentComplex> ApartmentComplexes { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,6 +38,9 @@ namespace SmartHome.backend.Data
                 .WithOne(a => a.ApartmentComplex)
                 .HasForeignKey(a => a.ApartmentComplexId);
 
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
         }
     }
 }
