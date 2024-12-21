@@ -11,5 +11,6 @@ namespace SmartHome.backend.Models
 
         public int ResidentialUnitId { get; set; }
         public ResidentialUnit ResidentialUnit { get; set; } = null!; // Will be null on runtime
+        public ICollection<DeviceGroup> DeviceGroups { get; set; } = new List<DeviceGroup>();
     }
 }

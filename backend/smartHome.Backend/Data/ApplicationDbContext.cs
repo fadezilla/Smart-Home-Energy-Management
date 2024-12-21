@@ -16,6 +16,8 @@ namespace SmartHome.backend.Data
         public DbSet<Apartment> Apartments { get; set; }
         public DbSet<ApartmentComplex> ApartmentComplexes { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<DeviceGroup> DeviceGroups { get; set; }
+        public DbSet<Schedule> Schedules { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,7 +39,15 @@ namespace SmartHome.backend.Data
                 .HasMany(ac => ac.Apartments)
                 .WithOne(a => a.ApartmentComplex)
                 .HasForeignKey(a => a.ApartmentComplexId);
-
+             modelBuilder.Entity<Device>()
+                .HasMany(d => d.DeviceGroups)
+                .WithMany(g => g.Devices)
+                .UsingEntity<Dictionary<string, object>>(
+                    "DeviceGroupDevices", // join table name
+                    dg => dg.HasOne<DeviceGroup>().WithMany().HasForeignKey("DeviceGroupId"),
+                    dg => dg.HasOne<Device>().WithMany().HasForeignKey("DevicesId")
+                );
+            // Make sure email are always unique
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHome.backend.Data;
 using SmartHome.backend.Services;
+using SmartHome.backend.Hubs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 //Add services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<RealTimeEnergyService>();
 //Add DbContext with SQL server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -62,5 +65,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
+app.MapHub<EnergyHub>("/hub/energy");
 app.MapControllers();
 app.Run();

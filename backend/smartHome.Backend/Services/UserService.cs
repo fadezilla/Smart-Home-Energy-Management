@@ -10,6 +10,8 @@ namespace SmartHome.backend.Services
     {
         Task<User?> GetUserByEmailAsync(string email);
         Task<User> CreateUserAsync(string email, string password, string role = "User");
+        Task<User> GetUserByIdAsync(int id);
+        Task SetUserRoleAsync(int userId, string role);
         Task<bool> CheckEmailExistsAsync(string email);
     }
 
@@ -47,6 +49,21 @@ namespace SmartHome.backend.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
+        }
+        public async Task SetUserRoleAsync(int userId, string role)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Role = role;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _context.Users.FindAsync(id);
         }
     }
 }
