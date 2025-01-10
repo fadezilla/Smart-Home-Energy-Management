@@ -7,14 +7,30 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
-
+//--------------------------------------
+// 1. Build the WebApplication
+//--------------------------------------
 var builder = WebApplication.CreateBuilder(args);
 
-//Add services
+// 1A: Add CORS Services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocal", policy =>
+    {
+        // Adjust the origin to match your Angular dev server (default: http://localhost:4200)
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+//Add other services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<RealTimeEnergyService>();
+
 //Add DbContext with SQL server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -22,7 +38,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //Add controllers
 builder.Services.AddControllers();
 
-//Add endpoints, swagger, etc.
+//Add Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -39,32 +55,47 @@ builder.Services.AddSwaggerGen(c =>
     });
     c.EnableAnnotations();
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
 });
 
 var app = builder.Build();
 
-//Run migrations and seed data
+//--------------------------------------
+// 2. Migrate & Seed Data
+//--------------------------------------
 using (var scope = app.Services.CreateScope())
 {
-    var DbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //Make sure the database is up to date with latest migrations
-    DbContext.Database.Migrate();
-    //Call the seeder
-    DataSeeder.seedData(DbContext);
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
+    DataSeeder.seedData(dbContext);
     Console.WriteLine("Calling DataSeeder...");
 }
 
-//Swagger and Api pipeline configuration
+//--------------------------------------
+// 3. Configure the Middleware
+//--------------------------------------
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// 3A: Use CORS *before* Authorization or MapControllers
+app.UseCors("AllowLocal");
+
 app.UseAuthorization();
+
+// If you have a custom exception middleware
 app.UseMiddleware<ExceptionMiddleware>();
+
+// SignalR
 app.MapHub<EnergyHub>("/hub/energy");
+
+// Controllers
 app.MapControllers();
+
+//--------------------------------------
+// 4. Run the App
+//--------------------------------------
 app.Run();
